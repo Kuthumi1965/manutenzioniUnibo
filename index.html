@@ -68,6 +68,12 @@ select:disabled{opacity:.5}
 .sum{font-size:13px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin-bottom:12px}
 .sum dt{color:var(--fg-muted)}
 .sum dd{font-weight:600;word-break:break-word}
+.code3{display:flex;align-items:flex-start;gap:6px}
+.code3>div{flex:1;min-width:0}
+.code3>div.wide{flex:1.4}
+.code3 input{text-align:center;font-family:ui-monospace,monospace;font-weight:700;padding:11px 6px}
+.code3 small{display:block;text-align:center;font-size:11px;color:var(--fg-muted);margin-top:3px}
+.code3 .dash{font-weight:700;font-size:20px;color:var(--fg-muted);padding-top:10px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -91,12 +97,16 @@ select:disabled{opacity:.5}
       <div id="askCode" hidden>
         <div class="msg warn">QR non ancora noto: digita il codice stampato sotto il QR (es. 716-WP01-071). Dalla prossima volta verrà riconosciuto.</div>
       </div>
-      <label class="l" for="inCode">Codice locale</label>
-      <div class="row">
-        <input type="text" id="inCode" placeholder="es. 716-WP01-071" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        <button class="btn small" id="btnCode" style="flex:0 0 auto">OK</button>
+      <label class="l">Codice locale <span style="font-weight:400">(i trattini si inseriscono da soli)</span></label>
+      <div class="code3">
+        <div><input type="text" id="inEd" inputmode="numeric" placeholder="716" autocomplete="off" enterkeyhint="next"><small>Edificio</small></div>
+        <span class="dash">-</span>
+        <div><input type="text" id="inPi" placeholder="WP01" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next"><small>Piano</small></div>
+        <span class="dash">-</span>
+        <div class="wide"><input type="text" id="inLo" placeholder="071" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"><small>Locale</small></div>
       </div>
-      <div class="hint">Se la fotocamera non è disponibile, scrivi il codice riportato sull'etichetta.</div>
+      <div class="hint" id="edName">Se la fotocamera non è disponibile, scrivi il codice riportato sull'etichetta.</div>
+      <button class="btn" id="btnCode" style="margin-top:10px">Conferma locale</button>
     </div>
     <div id="locOut" hidden>
       <div class="chip"><span>📍</span><div><div class="big" id="outCode"></div><div class="sm" id="outEd"></div></div>
@@ -180,14 +190,52 @@ function handleScan(text){
     st.qr=m[1];
     const s=qrLookup(st.qr);
     if(s){ setSpazio(s); return; }
-    $("askCode").hidden=false; $("inCode").focus(); return;
+    $("askCode").hidden=false; fillParts(""); $("inEd").focus(); return;
   }
   if(RE_SPAZIO.test(text)){ st.qr=""; setSpazio(text.trim().toUpperCase()); return; }
   msg("locMsg","err","Questo QR non sembra un'etichetta di locale UNIBO. Riprova o scrivi il codice a mano.");
 }
+/* tre caselle: edificio → piano → locale, trattini automatici */
+const EDK=Object.keys(D.edifici);
+const clean=s=>s.toUpperCase().replace(/\s+/g,"");
+function fillParts(code){
+  const p=clean(code).split("-");
+  $("inEd").value=p[0]||""; $("inPi").value=p[1]||""; $("inLo").value=p.slice(2).join("-");
+  showEdName();
+}
+function showEdName(){
+  const ed=$("inEd").value, e=D.edifici[ed];
+  $("edName").textContent= !ed ? "Se la fotocamera non è disponibile, scrivi il codice riportato sull'etichetta."
+    : e ? `Edificio ${ed} · ${e[0]}` : `Edificio ${ed} non presente nell'anagrafica`;
+}
+$("inEd").addEventListener("input",()=>{
+  const el=$("inEd"), v=clean(el.value);
+  if(v.includes("-")){ fillParts(v); (v.split("-").length>2?$("inLo"):$("inPi")).focus(); return; } // codice incollato o trattino digitato
+  el.value=v.replace(/\D/g,""); showEdName();
+  // passa al piano da solo se il codice è un edificio esistente e non è l'inizio di un altro
+  if(D.edifici[el.value] && !EDK.some(k=>k!==el.value&&k.startsWith(el.value))) $("inPi").focus();
+});
+$("inPi").addEventListener("input",()=>{
+  const el=$("inPi"); let v=clean(el.value);
+  if(v.includes("-")){ const [a,...b]=v.split("-"); el.value=a; if(b.join("-")) $("inLo").value=b.join("-"); $("inLo").focus(); return; }
+  el.value=v;
+  if(/^W[PS][A-Z0-9]{2}$/.test(v)) $("inLo").focus();
+});
+$("inLo").addEventListener("input",()=>{ $("inLo").value=clean($("inLo").value); });
+$("inEd").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("inPi").focus();}});
+$("inPi").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();$("inLo").focus();}
+  if(e.key==="Backspace"&&!$("inPi").value){e.preventDefault();$("inEd").focus();}
+});
+$("inLo").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();confirmCode();}
+  if(e.key==="Backspace"&&!$("inLo").value){e.preventDefault();$("inPi").focus();}
+});
 function confirmCode(){
-  const v=$("inCode").value.trim().toUpperCase();
-  if(!RE_SPAZIO.test(v)){ msg("locMsg","err","Formato non valido. Esempio: 716-WP01-071"); return; }
+  const ed=$("inEd").value, pi=$("inPi").value, lo=$("inLo").value.replace(/^-+|-+$/g,"");
+  if(!ed||!pi||!lo){ msg("locMsg","err","Compila edificio, piano e locale."); (!ed?$("inEd"):!pi?$("inPi"):$("inLo")).focus(); return; }
+  const v=`${ed}-${pi}-${lo}`;
+  if(!RE_SPAZIO.test(v)){ msg("locMsg","err","Formato non valido. Esempio: 716 - WP01 - 071"); return; }
   if(st.qr){ const a=LS.get("qrAppresi",{}); a[st.qr]=v; LS.set("qrAppresi",a); }
   setSpazio(v);
 }
@@ -209,9 +257,8 @@ function checkDistr(){
   else msg("locMsg","","");
 }
 $("btnCode").onclick=confirmCode;
-$("inCode").addEventListener("keydown",e=>{if(e.key==="Enter")confirmCode()});
 $("btnLocEdit").onclick=()=>{
-  $("inCode").value=st.spazio; st.spazio=""; st.qr=""; st.ed="";
+  fillParts(st.spazio); st.spazio=""; st.qr=""; st.ed="";
   $("locIn").hidden=false; $("locOut").hidden=true; $("c2").classList.remove("done");
   $("hb").textContent="—"; msg("locMsg","",""); refresh();
 };
