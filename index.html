@@ -174,30 +174,16 @@ input[type=number],input[type=date]{width:100%;padding:11px 12px;border:2px soli
       <div class="hint" id="micHint">Parla solo mentre tieni premuto. Il testo compare qui sopra: lo aggiungi solo se è corretto.</div>
     </div>
     <label class="chk"><input type="checkbox" id="chkVN"> Aggiungere VN (Vedi Nota)</label>
+    <label class="l" for="inElem">Elemento da sostituire <span style="font-weight:400">(se necessario)</span></label>
+    <input type="text" id="inElem" placeholder="es. filtro aria" autocomplete="off">
   </section>
 
-  <!-- 6 DETTAGLI -->
-  <section class="card off" id="c6">
-    <div class="st"><span class="n">6</span>Sostituzioni, rapporto e durata</div>
-    <div class="row">
-      <div style="flex:2"><label class="l" for="inElem">Elemento da sostituire</label>
-        <input type="text" id="inElem" placeholder="es. filtro" autocomplete="off"></div>
-      <div style="flex:1"><label class="l" for="inQta">Quantità</label>
-        <input type="number" id="inQta" inputmode="numeric" min="0" placeholder="0"></div>
-    </div>
-    <label class="l">Rapporto di intervento</label>
-    <div class="opts" id="rappList"></div>
-    <label class="l" for="inDur">Durata intervento (minuti)</label>
-    <div class="quick" id="durQuick"></div>
-    <input type="number" id="inDur" inputmode="numeric" min="0" placeholder="minuti">
-  </section>
-
-  <!-- 7 TECNICO E INVIO -->
+  <!-- 6 TECNICO E INVIO -->
   <section class="card off" id="c7">
-    <div class="st"><span class="n">7</span>Tecnico e invio</div>
+    <div class="st"><span class="n">6</span>Tecnico e invio</div>
     <div class="row">
-      <div style="flex:2"><label class="l" for="inTec">Nome e cognome tecnico</label>
-        <input type="text" id="inTec" placeholder="Nome Cognome" autocomplete="name"></div>
+      <div style="flex:2"><label class="l" for="inTec">Matricola tecnico</label>
+        <input type="text" id="inTec" placeholder="Matricola" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
       <div style="flex:1.2"><label class="l" for="inData">Data</label>
         <input type="date" id="inData"></div>
     </div>
@@ -236,21 +222,17 @@ const CAMPI = {
   periodicita:{id:"r4e314bfd9fff4a9f8d43b675140315a7", scelta:true},
   impianto:   {id:"r59c6b7e69ac1405ba34241ee11379019", scelta:false},   // Codice univoco impianto
   qr:         {id:"r23ce11dd56e54126b296c9e7eb902d62", scelta:false},   // Codice QR
-  tecnico:    {id:"r959172f892c04d1ea994970dfc076b43", scelta:false},
+  tecnico:    {id:"r959172f892c04d1ea994970dfc076b43", scelta:false},   // Matricola tecnico
   esito:      {id:"r811ab06a55614b11a5256d7c08803bdf", scelta:true},
   vn:         {id:"r76ce0d9b6cf7424793848bd5b7ee0c15", scelta:true},
   descrizione:{id:"r223a49a9b6964259a0c7965b1de614a5", scelta:false},
-  elemento:   {id:"r88b4e593627f4e0aa55c916d3ab7e0aa", scelta:false},
-  quantita:   {id:"r8e131d126f834e759e01fc8300662805", scelta:false},
-  rapporto:   {id:"ra6d4e6ae8d4346908e896caf0ed42e78", multipla:true},  // scelta multipla
-  durata:     {id:"rfa5feaa568604a209776dd9465572570", scelta:false}
+  elemento:   {id:"r88b4e593627f4e0aa55c916d3ab7e0aa", scelta:false}
 };
 /* Opzioni delle domande a scelta: devono coincidere ESATTAMENTE con il Form */
 const ESITI = ["P - Positivo","PI - Positivo previo intervento contestuale","N - Negativo",
   "NA - Rimandato a sessione successiva","NP - Componente non presente"];
 const VN_SI = "Si - aggiungo nota", VN_NO = "No";
-const RAPPORTO = ["No","Si - caricato su OneDrive","Si - cartaceo"];
-const DURATE_RAPIDE = [5,10,15,30,60];
+
 /* Nomi distretto come compaiono nel Form (database → Form) */
 const DISTRETTO_FORM = d => d;   // il Form usa gli stessi nomi del database (es. SAN-GIACOMO)
 /* Periodicità come compaiono nel Form (codice database → testo opzione) */
@@ -501,22 +483,14 @@ function radioList(box,name,opts,type){
     l.firstChild.value=o; l.lastChild.textContent=o; $(box).appendChild(l)});
 }
 radioList("esitoList","esito",ESITI,"radio");
-radioList("rappList","rapp",RAPPORTO,"checkbox");
 const getEsito=()=>{const r=document.querySelector('input[name=esito]:checked');return r?r.value:""};
-const getRapp=()=>[...document.querySelectorAll('input[name=rapp]:checked')].map(i=>i.value);
 document.querySelectorAll('input[name=esito]').forEach(r=>r.addEventListener("change",()=>{
   $("chkVN").checked = !getEsito().startsWith("P - "); refresh();
 }));
-document.querySelectorAll('input[name=rapp]').forEach(r=>r.addEventListener("change",()=>{
-  if(r.checked){ // "No" esclude le altre e viceversa
-    document.querySelectorAll('input[name=rapp]').forEach(x=>{ if(x!==r && (r.value==="No"||x.value==="No")) x.checked=false; });
-  } refresh();
-}));
-DURATE_RAPIDE.forEach(m=>{const b=document.createElement("button");b.type="button";b.textContent=m+"′";
-  b.onclick=()=>{$("inDur").value=m; refresh();}; $("durQuick").appendChild(b)});
-["descr","inElem","inQta","inDur","inTec","inData","chkVN"].forEach(id=>$(id).addEventListener("input",refresh));
+["descr","inElem","inTec","inData","chkVN"].forEach(id=>$(id).addEventListener("input",refresh));
 $("chkVN").addEventListener("change",refresh);
-$("inTec").value=LS.get("tecnico","");
+$("inTec").value=LS.get("matricola","");
+$("inTec").addEventListener("input",()=>{$("inTec").value=$("inTec").value.toUpperCase().replace(/\s+/g,"");});
 const oggiISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 $("inData").value=oggiISO();
 
@@ -559,11 +533,10 @@ function refresh(){
   enable("c3",!!(st.distr&&st.spazio));
   const ready=!!(st.distr&&st.spazio&&st.comp&&st.sch);
   $("c3").classList.toggle("done",ready);
-  ["c4","c5","c6","c7"].forEach(c=>enable(c,ready));
+  ["c4","c5","c7"].forEach(c=>enable(c,ready));
   $("c5").classList.toggle("done",!!getEsito());
-  [...$("durQuick").children].forEach(b=>b.classList.toggle("on",b.textContent===$("inDur").value+"′"));
   const rows=[["Locale",st.spazio],["Componente",st.comp?st.comp.nome:""],["Periodicità",perLabel()],
-    ["Esito",getEsito()],["Durata",$("inDur").value?$("inDur").value+" min":""]];
+    ["Esito",getEsito()],["Matricola",$("inTec").value.trim()]];
   $("sum").innerHTML=""; rows.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;
     const dd=document.createElement("dd");dd.textContent=v||"—";$("sum").append(dt,dd)});
 }
@@ -574,8 +547,7 @@ function buildUrl(){
   const val={data:$("inData").value||oggiISO(), distretto:DISTRETTO_FORM(st.distr), edificio:st.ed, spazio:st.spazio,
     categoria:st.cat, componente:compLabel(), periodicita:PERIODICITA_FORM[st.sch==="X"?"X":st.sch.p]||"",
     impianto:$("inImp").value.trim(), qr:st.qr, tecnico:$("inTec").value.trim(), esito:getEsito(),
-    vn:$("chkVN").checked?VN_SI:VN_NO, descrizione:$("descr").value.trim(), elemento:$("inElem").value.trim(),
-    quantita:$("inQta").value, rapporto:getRapp(), durata:$("inDur").value};
+    vn:$("chkVN").checked?VN_SI:VN_NO, descrizione:$("descr").value.trim(), elemento:$("inElem").value.trim()};
   let url=FORM_BASE;
   for(const [k,c] of Object.entries(CAMPI)){
     const v=val[k]; if(!c.id||!v||(Array.isArray(v)&&!v.length)) continue;
@@ -589,18 +561,18 @@ function openForm(url){
   if(!w) location.href=url;   // se il browser blocca la nuova finestra, apre qui
 }
 $("btnGo").onclick=()=>{
-  const miss=[]; if(!getEsito()) miss.push("l'esito"); if(!$("inTec").value.trim()) miss.push("il nome del tecnico");
+  const miss=[]; if(!getEsito()) miss.push("l'esito"); if(!$("inTec").value.trim()) miss.push("la matricola del tecnico");
   if($("chkVN").checked && !$("descr").value.trim()) miss.push("la descrizione (hai indicato VN)");
   if(miss.length){ msg("goMsg","err","Manca "+miss.join(", ")+"."); return; }
   msg("goMsg","","");
-  LS.set("tecnico",$("inTec").value.trim());
+  LS.set("matricola",$("inTec").value.trim());
   lastUrl=buildUrl(); openForm(lastUrl);
   $("cAfter").hidden=false; $("cAfter").scrollIntoView({behavior:"smooth",block:"center"});
 };
 function resetIntervento(){
   st.comp=null; st.sch=null; $("selComp").value=""; fillPer(); showIstr();
-  $("inImp").value=""; $("descr").value=""; $("chkVN").checked=false; $("inElem").value=""; $("inQta").value="";
-  $("inDur").value=""; document.querySelectorAll('input[name=esito],input[name=rapp]').forEach(i=>i.checked=false);
+  $("inImp").value=""; $("descr").value=""; $("chkVN").checked=false; $("inElem").value="";
+  document.querySelectorAll('input[name=esito]').forEach(i=>i.checked=false);
   $("inData").value=oggiISO(); $("cAfter").hidden=true; msg("goMsg","",""); refresh();
 }
 $("btnSame").onclick=()=>{ resetIntervento(); $("c3").scrollIntoView({behavior:"smooth"}); };
