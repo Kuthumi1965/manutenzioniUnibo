@@ -3,37 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1A5FA8">
+<meta name="theme-color" content="#14508F">
+<meta name="color-scheme" content="light only">
 <title>Manutenzioni UNIBO</title>
 <style>
 /* ═════════════ CONFIGURAZIONE ═════════════
    Le uniche cose da modificare sono nel blocco <script> "CONFIGURAZIONE" in fondo. */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F4F6FA;--surface:#fff;--surface-alt:#EEF1F7;--border:#D5DAEA;
-  --fg:#1A1E2E;--fg-muted:#5A6082;--accent:#1A5FA8;--accent-light:#EBF2FC;
-  --ok:#1B7B3A;--ok-bg:#E8F5EE;--warn:#9A4A06;--warn-bg:#FEF3E2;
-  --danger:#B3261E;--danger-bg:#FDECEA;--radius:10px;
+  /* tema chiaro fisso: sfondo avorio, caselle bianche, testo ad alto contrasto */
+  --bg:#FAF6EA;--surface:#FFFFFF;--surface-alt:#F3EEDF;--border:#CFC6AE;
+  --fg:#1A1A1A;--fg-muted:#4A4A4A;--accent:#14508F;--accent-light:#E6EEF8;
+  --ok:#17692F;--ok-bg:#E6F4EA;--warn:#7A3B00;--warn-bg:#FFF1DC;
+  --danger:#A3211A;--danger-bg:#FDE9E7;--radius:10px;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:light;
 }
-@media(prefers-color-scheme:dark){:root{
-  --bg:#0F1117;--surface:#1A1E2E;--surface-alt:#232740;--border:#2E3350;
-  --fg:#E8EAF2;--fg-muted:#9096B4;--accent:#5A9BE0;--accent-light:#1A2D45;
-  --ok:#4CAF7D;--ok-bg:#0D2518;--warn:#F0A040;--warn-bg:#2A1F00;
-  --danger:#E8746A;--danger-bg:#2A0D0A;color-scheme:dark}}
 body{background:var(--bg);color:var(--fg);min-height:100vh;font-size:15px;line-height:1.45}
 header{position:sticky;top:0;z-index:10;background:var(--accent);color:#fff;
   padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;align-items:center;gap:10px}
 header .t{font-weight:700;font-size:16px;flex:1}
 header .b{font-size:12px;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;white-space:nowrap;max-width:50%;overflow:hidden;text-overflow:ellipsis}
 main{max-width:640px;margin:0 auto;padding:16px 14px calc(32px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.card{background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 3px rgba(60,50,20,.08);border-radius:var(--radius);padding:14px}
 .card.off{opacity:.45;pointer-events:none}
 .st{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .st .n{background:var(--accent);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
 .done .st .n{background:var(--ok)}
 label.l{display:block;font-size:12px;font-weight:600;color:var(--fg-muted);margin:10px 0 5px}
-select,input[type=text],input[type=search]{width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);font-size:16px;font-family:inherit;outline:none}
+select,input[type=text],input[type=search]{width:100%;padding:11px 12px;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--fg);font-size:16px;font-family:inherit;outline:none}
 select:focus,input:focus{border-color:var(--accent)}
 select:disabled{opacity:.5}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
