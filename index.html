@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#14508F">
+<meta name="theme-color" content="#BB3530">
 <meta name="color-scheme" content="light only">
 <title>Manutenzioni UNIBO</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 /* ═════════════ CONFIGURAZIONE ═════════════
    Le uniche cose da modificare sono nel blocco <script> "CONFIGURAZIONE" in fondo. */
@@ -13,9 +16,9 @@
 :root{
   /* tema chiaro fisso: sfondo avorio, caselle bianche, testo ad alto contrasto */
   --bg:#FAF6EA;--surface:#FFFFFF;--surface-alt:#F3EEDF;--border:#CFC6AE;
-  --fg:#1A1A1A;--fg-muted:#4A4A4A;--accent:#14508F;--accent-light:#E6EEF8;
+  --fg:#1A1A1A;--fg-muted:#4A4A4A;--accent:#BB3530;--accent-light:#FFF8F6;
   --ok:#17692F;--ok-bg:#E6F4EA;--warn:#7A3B00;--warn-bg:#FFF1DC;
-  --danger:#A3211A;--danger-bg:#FDE9E7;--radius:10px;
+  --danger:#8A1C16;--danger-bg:#FDE3E0;--radius:10px;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:light;
 }
 body{background:var(--bg);color:var(--fg);min-height:100vh;font-size:15px;line-height:1.45}
@@ -39,7 +42,7 @@ select:disabled{opacity:.5}
 .btn:disabled{opacity:.4}
 .row{display:flex;gap:8px;align-items:center}
 .row>*{flex:1}
-.chip{display:flex;align-items:center;gap:10px;background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;padding:10px 12px}
+.chip{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--accent);border-radius:8px;padding:10px 12px}
 .chip .big{font-family:ui-monospace,monospace;font-weight:700;font-size:17px;color:var(--accent)}
 .chip .sm{font-size:12px;color:var(--fg-muted)}
 .chip .ed{margin-left:auto;font-size:13px;color:var(--accent);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit}
@@ -71,6 +74,25 @@ select:disabled{opacity:.5}
 .code3 input{text-align:center;font-family:ui-monospace,monospace;font-weight:700;padding:11px 6px}
 .code3 small{display:block;text-align:center;font-size:11px;color:var(--fg-muted);margin-top:3px}
 .code3 .dash{font-weight:700;font-size:20px;color:var(--fg-muted);padding-top:10px}
+textarea{width:100%;padding:11px 12px;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--fg);font-size:16px;font-family:inherit;outline:none;resize:vertical;line-height:1.45}
+textarea:focus,input[type=number]:focus,input[type=date]:focus{border-color:var(--accent)}
+input[type=number],input[type=date]{width:100%;padding:11px 12px;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--fg);font-size:16px;font-family:inherit;outline:none}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opts label{display:flex;align-items:center;gap:10px;padding:11px 12px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:15px;cursor:pointer}
+.opts label:has(input:checked){border-color:var(--accent);background:var(--accent-light);font-weight:600}
+.opts input{width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto}
+.chk{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:15px}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.mic{margin-top:8px}
+#btnMic{user-select:none;-webkit-user-select:none;touch-action:none}
+#btnMic.rec{background:var(--danger);border-color:var(--danger);color:#fff}
+.preview{background:var(--surface-alt);border:2px dashed var(--accent);border-radius:8px;padding:10px;margin-top:8px}
+.pt{font-size:15px;min-height:22px}
+.pt i{color:var(--fg-muted)}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.quick button{flex:1;min-width:52px;padding:9px 0;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:14px;font-weight:600;color:var(--fg);font-family:inherit}
+.quick button.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.btn+.btn{margin-top:0}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -134,13 +156,64 @@ select:disabled{opacity:.5}
     <div class="hint">Compila solo se l'impianto ha già un'etichetta identificativa della ditta.</div>
   </section>
 
-  <!-- 5 INVIO -->
+  <!-- 5 ESITO -->
   <section class="card off" id="c5">
-    <div class="st"><span class="n">5</span>Registrazione</div>
-    <dl class="sum" id="sum"></dl>
-    <button class="btn" id="btnGo">📝 Compila la registrazione nel Form</button>
-    <div class="hint">Si apre il modulo con questi dati già inseriti: completa esito, descrizione e durata, poi invia.</div>
+    <div class="st"><span class="n">5</span>Esito e descrizione</div>
+    <div class="opts" id="esitoList"></div>
+    <label class="l" for="descr">Descrizione dell'intervento / del problema</label>
+    <textarea id="descr" rows="4" placeholder="Cosa hai fatto, cosa hai trovato…"></textarea>
+    <div class="mic" id="micBox" hidden>
+      <button type="button" class="btn sec" id="btnMic">🎙 Tieni premuto per dettare</button>
+      <div class="preview" id="micPrev" hidden>
+        <div class="pt" id="micText"></div>
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="btn small" id="micAdd">✓ Aggiungi</button>
+          <button type="button" class="btn small sec" id="micDel">✕ Scarta</button>
+        </div>
+      </div>
+      <div class="hint" id="micHint">Parla solo mentre tieni premuto. Il testo compare qui sopra: lo aggiungi solo se è corretto.</div>
+    </div>
+    <label class="chk"><input type="checkbox" id="chkVN"> Aggiungere VN (Vedi Nota)</label>
+  </section>
+
+  <!-- 6 DETTAGLI -->
+  <section class="card off" id="c6">
+    <div class="st"><span class="n">6</span>Sostituzioni, rapporto e durata</div>
+    <div class="row">
+      <div style="flex:2"><label class="l" for="inElem">Elemento da sostituire</label>
+        <input type="text" id="inElem" placeholder="es. filtro" autocomplete="off"></div>
+      <div style="flex:1"><label class="l" for="inQta">Quantità</label>
+        <input type="number" id="inQta" inputmode="numeric" min="0" placeholder="0"></div>
+    </div>
+    <label class="l">Rapporto di intervento</label>
+    <div class="opts" id="rappList"></div>
+    <label class="l" for="inDur">Durata intervento (minuti)</label>
+    <div class="quick" id="durQuick"></div>
+    <input type="number" id="inDur" inputmode="numeric" min="0" placeholder="minuti">
+  </section>
+
+  <!-- 7 TECNICO E INVIO -->
+  <section class="card off" id="c7">
+    <div class="st"><span class="n">7</span>Tecnico e invio</div>
+    <div class="row">
+      <div style="flex:2"><label class="l" for="inTec">Nome e cognome tecnico</label>
+        <input type="text" id="inTec" placeholder="Nome Cognome" autocomplete="name"></div>
+      <div style="flex:1.2"><label class="l" for="inData">Data</label>
+        <input type="date" id="inData"></div>
+    </div>
+    <dl class="sum" id="sum" style="margin-top:14px"></dl>
+    <button class="btn" id="btnGo">📝 Apri il Form già compilato</button>
+    <div class="hint">Nel Form controlla i dati e premi <b>Invia</b>. Poi chiudi il Form con la <b>X</b> in alto e torni qui.</div>
     <div id="goMsg"></div>
+  </section>
+
+  <!-- DOPO L'INVIO -->
+  <section class="card" id="cAfter" hidden>
+    <div class="st" style="color:var(--ok)">✓ Form aperto</div>
+    <p style="font-size:14px;margin-bottom:12px">Hai premuto <b>Invia</b> nel Form? Allora scegli come proseguire:</p>
+    <button class="btn" id="btnSame">➕ Altro impianto, stesso locale</button>
+    <button class="btn sec" id="btnNew" style="margin-top:10px">📍 Nuovo locale</button>
+    <button class="btn sec" id="btnReopen" style="margin-top:10px">↩ Riapri il Form (non l'ho inviato)</button>
   </section>
 
 </main>
@@ -162,8 +235,22 @@ const CAMPI = {
   componente: {id:"rccd4f3525da34e189b5f5ab69880009a", scelta:false},
   periodicita:{id:"r4e314bfd9fff4a9f8d43b675140315a7", scelta:true},
   impianto:   {id:"r59c6b7e69ac1405ba34241ee11379019", scelta:false},   // Codice univoco impianto
-  qr:         {id:"r23ce11dd56e54126b296c9e7eb902d62", scelta:false}    // Codice QR
+  qr:         {id:"r23ce11dd56e54126b296c9e7eb902d62", scelta:false},   // Codice QR
+  tecnico:    {id:"r959172f892c04d1ea994970dfc076b43", scelta:false},
+  esito:      {id:"r811ab06a55614b11a5256d7c08803bdf", scelta:true},
+  vn:         {id:"r76ce0d9b6cf7424793848bd5b7ee0c15", scelta:true},
+  descrizione:{id:"r223a49a9b6964259a0c7965b1de614a5", scelta:false},
+  elemento:   {id:"r88b4e593627f4e0aa55c916d3ab7e0aa", scelta:false},
+  quantita:   {id:"r8e131d126f834e759e01fc8300662805", scelta:false},
+  rapporto:   {id:"ra6d4e6ae8d4346908e896caf0ed42e78", multipla:true},  // scelta multipla
+  durata:     {id:"rfa5feaa568604a209776dd9465572570", scelta:false}
 };
+/* Opzioni delle domande a scelta: devono coincidere ESATTAMENTE con il Form */
+const ESITI = ["P - Positivo","PI - Positivo previo intervento contestuale","N - Negativo",
+  "NA - Rimandato a sessione successiva","NP - Componente non presente"];
+const VN_SI = "Si - aggiungo nota", VN_NO = "No";
+const RAPPORTO = ["No","Si - caricato su OneDrive","Si - cartaceo"];
+const DURATE_RAPIDE = [5,10,15,30,60];
 /* Nomi distretto come compaiono nel Form (database → Form) */
 const DISTRETTO_FORM = d => d;   // il Form usa gli stessi nomi del database (es. SAN-GIACOMO)
 /* Periodicità come compaiono nel Form (codice database → testo opzione) */
@@ -407,33 +494,118 @@ $("inSearch").addEventListener("input",()=>{
   ul.hidden=false;
 });
 
-/* ── 5 INVIO ── */
+/* ── 5 ESITO ── */
+function radioList(box,name,opts,type){
+  opts.forEach(o=>{const l=document.createElement("label");
+    l.innerHTML=`<input type="${type}" name="${name}">`+"<span></span>";
+    l.firstChild.value=o; l.lastChild.textContent=o; $(box).appendChild(l)});
+}
+radioList("esitoList","esito",ESITI,"radio");
+radioList("rappList","rapp",RAPPORTO,"checkbox");
+const getEsito=()=>{const r=document.querySelector('input[name=esito]:checked');return r?r.value:""};
+const getRapp=()=>[...document.querySelectorAll('input[name=rapp]:checked')].map(i=>i.value);
+document.querySelectorAll('input[name=esito]').forEach(r=>r.addEventListener("change",()=>{
+  $("chkVN").checked = !getEsito().startsWith("P - "); refresh();
+}));
+document.querySelectorAll('input[name=rapp]').forEach(r=>r.addEventListener("change",()=>{
+  if(r.checked){ // "No" esclude le altre e viceversa
+    document.querySelectorAll('input[name=rapp]').forEach(x=>{ if(x!==r && (r.value==="No"||x.value==="No")) x.checked=false; });
+  } refresh();
+}));
+DURATE_RAPIDE.forEach(m=>{const b=document.createElement("button");b.type="button";b.textContent=m+"′";
+  b.onclick=()=>{$("inDur").value=m; refresh();}; $("durQuick").appendChild(b)});
+["descr","inElem","inQta","inDur","inTec","inData","chkVN"].forEach(id=>$(id).addEventListener("input",refresh));
+$("chkVN").addEventListener("change",refresh);
+$("inTec").value=LS.get("tecnico","");
+const oggiISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+$("inData").value=oggiISO();
+
+/* dettatura: tieni premuto → parla → anteprima → Aggiungi/Scarta */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, recOn=false, recFinal="", recInterim="";
+if(SR){
+  $("micBox").hidden=false;
+  const show=()=>{$("micText").innerHTML=""; const s=document.createElement("span"); s.textContent=recFinal;
+    const i=document.createElement("i"); i.textContent=recInterim?" "+recInterim:""; $("micText").append(s,i);};
+  const start=e=>{
+    e.preventDefault(); if(recOn) return;
+    rec=new SR(); rec.lang="it-IT"; rec.continuous=true; rec.interimResults=true;
+    rec.onresult=ev=>{recInterim="";
+      for(let k=ev.resultIndex;k<ev.results.length;k++){const r=ev.results[k];
+        if(r.isFinal) recFinal+=(recFinal?" ":"")+r[0].transcript.trim(); else recInterim+=r[0].transcript;}
+      show();};
+    rec.onerror=ev=>{ if(ev.error==="not-allowed") $("micHint").textContent="Microfono non autorizzato: consentilo nelle impostazioni del browser.";
+      else if(ev.error==="network") $("micHint").textContent="La dettatura richiede la connessione dati."; };
+    rec.onend=()=>{recOn=false; $("btnMic").classList.remove("rec"); $("btnMic").textContent="🎙 Tieni premuto per dettare";
+      recInterim=""; show(); $("micPrev").hidden=!recFinal;};
+    try{ rec.start(); recOn=true; $("btnMic").classList.add("rec"); $("btnMic").textContent="🔴 Sto ascoltando… rilascia per fermare";
+      $("micPrev").hidden=false; show(); }catch(err){}
+  };
+  const stop=()=>{ if(rec&&recOn) rec.stop(); };
+  $("btnMic").addEventListener("pointerdown",start);
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>$("btnMic").addEventListener(ev,stop));
+  $("btnMic").addEventListener("contextmenu",e=>e.preventDefault());
+  $("micAdd").onclick=()=>{ if(recFinal){ const d=$("descr"); d.value=(d.value.trim()?d.value.trim()+" ":"")+recFinal; }
+    recFinal=""; $("micPrev").hidden=true; refresh(); };
+  $("micDel").onclick=()=>{ recFinal=""; $("micPrev").hidden=true; };
+}
+
+/* ── 7 INVIO ── */
 function perLabel(){ return st.sch==="X" ? "Su chiamata / non programmato" : (st.sch ? st.sch.d : ""); }
 function compLabel(){ return st.comp ? `${st.comp.id} · ${st.comp.nome}` : ""; }
 function refresh(){
+  msg("goMsg","","");
   enable("c2",!!st.distr);
   enable("c3",!!(st.distr&&st.spazio));
   const ready=!!(st.distr&&st.spazio&&st.comp&&st.sch);
   $("c3").classList.toggle("done",ready);
-  enable("c4",ready); enable("c5",ready);
-  const rows=[["Distretto",st.distr],["Locale",st.spazio],["Edificio",st.ed],["Categoria",st.cat],
-    ["Componente",compLabel()],["Periodicità",perLabel()],["Cod. impianto",$("inImp").value.trim()||"—"]];
+  ["c4","c5","c6","c7"].forEach(c=>enable(c,ready));
+  $("c5").classList.toggle("done",!!getEsito());
+  [...$("durQuick").children].forEach(b=>b.classList.toggle("on",b.textContent===$("inDur").value+"′"));
+  const rows=[["Locale",st.spazio],["Componente",st.comp?st.comp.nome:""],["Periodicità",perLabel()],
+    ["Esito",getEsito()],["Durata",$("inDur").value?$("inDur").value+" min":""]];
   $("sum").innerHTML=""; rows.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;
     const dd=document.createElement("dd");dd.textContent=v||"—";$("sum").append(dt,dd)});
 }
 $("inImp").addEventListener("input",()=>{$("inImp").value=$("inImp").value.toUpperCase(); refresh();});
-$("btnGo").onclick=()=>{
-  const oggi=new Date(); const iso=new Date(oggi.getTime()-oggi.getTimezoneOffset()*60000).toISOString().slice(0,10);
-  const val={data:iso, distretto:DISTRETTO_FORM(st.distr), edificio:st.ed, spazio:st.spazio, categoria:st.cat,
-    componente:compLabel(), periodicita:PERIODICITA_FORM[st.sch==="X"?"X":st.sch.p]||"",
-    impianto:$("inImp").value.trim(), qr:st.qr};
+
+let lastUrl="";
+function buildUrl(){
+  const val={data:$("inData").value||oggiISO(), distretto:DISTRETTO_FORM(st.distr), edificio:st.ed, spazio:st.spazio,
+    categoria:st.cat, componente:compLabel(), periodicita:PERIODICITA_FORM[st.sch==="X"?"X":st.sch.p]||"",
+    impianto:$("inImp").value.trim(), qr:st.qr, tecnico:$("inTec").value.trim(), esito:getEsito(),
+    vn:$("chkVN").checked?VN_SI:VN_NO, descrizione:$("descr").value.trim(), elemento:$("inElem").value.trim(),
+    quantita:$("inQta").value, rapporto:getRapp(), durata:$("inDur").value};
   let url=FORM_BASE;
   for(const [k,c] of Object.entries(CAMPI)){
-    const v=val[k]; if(!c.id||!v) continue;
-    url+="&"+c.id+"="+encodeURIComponent(c.scelta?'"'+v+'"':v);
+    const v=val[k]; if(!c.id||!v||(Array.isArray(v)&&!v.length)) continue;
+    const enc = c.multipla ? JSON.stringify(JSON.stringify(v)) : c.scelta ? JSON.stringify(v) : v;
+    url+="&"+c.id+"="+encodeURIComponent(enc);
   }
-  location.href=url;
+  return url;
+}
+function openForm(url){
+  const w=window.open(url,"_blank");
+  if(!w) location.href=url;   // se il browser blocca la nuova finestra, apre qui
+}
+$("btnGo").onclick=()=>{
+  const miss=[]; if(!getEsito()) miss.push("l'esito"); if(!$("inTec").value.trim()) miss.push("il nome del tecnico");
+  if($("chkVN").checked && !$("descr").value.trim()) miss.push("la descrizione (hai indicato VN)");
+  if(miss.length){ msg("goMsg","err","Manca "+miss.join(", ")+"."); return; }
+  msg("goMsg","","");
+  LS.set("tecnico",$("inTec").value.trim());
+  lastUrl=buildUrl(); openForm(lastUrl);
+  $("cAfter").hidden=false; $("cAfter").scrollIntoView({behavior:"smooth",block:"center"});
 };
+function resetIntervento(){
+  st.comp=null; st.sch=null; $("selComp").value=""; fillPer(); showIstr();
+  $("inImp").value=""; $("descr").value=""; $("chkVN").checked=false; $("inElem").value=""; $("inQta").value="";
+  $("inDur").value=""; document.querySelectorAll('input[name=esito],input[name=rapp]').forEach(i=>i.checked=false);
+  $("inData").value=oggiISO(); $("cAfter").hidden=true; msg("goMsg","",""); refresh();
+}
+$("btnSame").onclick=()=>{ resetIntervento(); $("c3").scrollIntoView({behavior:"smooth"}); };
+$("btnNew").onclick=()=>{ resetIntervento(); $("btnLocEdit").click(); fillParts(""); window.scrollTo({top:0,behavior:"smooth"}); };
+$("btnReopen").onclick=()=>{ if(lastUrl) openForm(lastUrl); };
 refresh();
 </script>
 </body>
